@@ -1,0 +1,41 @@
+#compdef npx
+
+zbnc_recursively_look_for() {
+  local filename="$1"
+  local dir=$PWD
+  while [ ! -e "$dir/$filename" ]; do
+    dir=${dir%/*}
+    [[ "$dir" = "" ]] && break
+  done
+  [[ ! "$dir" = "" ]] && echo "$dir/$filename"
+}
+
+zbnc_npx_list_executables() {
+  local package_json="$1"
+  local node_modules="$(dirname package_json)/node_modules"
+  local bindir="$node_modules/.bin"
+
+  # Return if there's no node_modules
+  [[ ! -e "$node_modules" ]] && return
+
+  # Return if there's no .bin in node_modules
+  [[ ! -e "$bindir" ]] && return
+
+  for i in $bindir/*; do
+    basename $i
+  done
+
+}
+
+__npx() {
+
+  local package_json="$(zbnc_recursively_look_for package.json)"
+
+  # Return if we can't find package.json
+  [[ "$package_json" = "" ]] && return
+
+  _values $(zbnc_npx_list_executables "$package_json")
+
+}
+
+__npx "$@"
